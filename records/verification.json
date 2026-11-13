@@ -1,0 +1,32 @@
+{
+  "format": "mysql-lab-verification/v1",
+  "verified_at": "2026-11-13T12:18:12.209919+00:00",
+  "result": "PASS",
+  "lifecycle": {
+    "unconfirmed_destroy_refused": true,
+    "explicit_scoped_destroy_executed": true,
+    "volume_absent_after_destroy": true,
+    "fresh_volume_created": true,
+    "same_volume_retained_after_stop_start": true,
+    "container_stopped_at_end": true,
+    "loopback_only_port_verified": true
+  },
+  "runs": {
+    "clean": {
+      "sha256": "2be19ea20cb42484f2e8c19cbddee0fdc947e3a589568852cdf4fef2b920ec5f",
+      "recorded_at": "2026-11-13T12:17:55.647612+00:00",
+      "semantic_assertions_passed": true,
+      "remaining_lab_locks": 0
+    },
+    "repeat": {
+      "sha256": "e4e4d9dc620784309e2920b3381cc5c0e0f96f0c29d0ba3272722d69bc4a9b93",
+      "recorded_at": "2026-11-13T12:18:07.049060+00:00",
+      "semantic_assertions_passed": true,
+      "remaining_lab_locks": 0
+    }
+  },
+  "dataset_hashes_match": true,
+  "query_result_hashes_match": true,
+  "data_scope": "Synthetic data only; no raw logs, environment files, credentials, hostnames or local paths included.",
+  "limits": "Timing samples are local warm-buffer observations, not production benchmarks. Deadlock victim identity is not fixed."
+}
