@@ -17,10 +17,13 @@ jobs:
         run: |
           python lab.py start
           python lab.py run --output .local/ci-clean/run.json
+          python lab.py oncall --output .local/ci-clean/oncall.json
           python lab.py stop
           python lab.py start
           python lab.py run --output .local/ci-repeat/run.json
+          python lab.py oncall --output .local/ci-repeat/oncall.json
           python scripts/validate.py .local/ci-clean/run.json .local/ci-repeat/run.json
+          python scripts/validate_oncall.py .local/ci-clean/oncall.json .local/ci-repeat/oncall.json
       - name: Verify public baselines and export
         run: |
           python scripts/audit_public.py
@@ -34,6 +37,8 @@ jobs:
           path: |
             .local/ci-clean/run.json
             .local/ci-repeat/run.json
+            .local/ci-clean/oncall.json
+            .local/ci-repeat/oncall.json
       - name: Remove only CI Lab resources
         if: always()
         run: python lab.py destroy --confirm lynn-mysql-lab

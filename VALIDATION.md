@@ -1,4 +1,56 @@
-# MySQL Lab 1.0 validation
+# MySQL Lab validation
+
+## 1.1 depth iteration — 2026-11-14 (Asia/Shanghai)
+
+The audit in `learning/AUDIT.md` identifies four evidence-backed gaps and selects business invariants as the implementation priority. Original accepted records are retained unchanged.
+
+### Official learning resources
+
+Selected CMU 15-445/645 Intro to Database Systems and MIT 6.5830/6.5831 Database Systems, both Spring 2026. `learning/resources.json` records school, accurate number/name, term, prerequisites, material access versus institutional enrollment/costs, exact lecture/reading locations and verification date. Six units have runnable commands, predictions, evidence to inspect and limits. The units are independently authored, not BusTub/GoDB assignment answers. The catalog is searchable both in the browser and offline.
+
+Actually fetched 18 official public course/documentation URLs without credentials, checked HTTP 200 and PDF signatures, and retained status/type/body hashes in `records/course-verification.json`. No course document body is bundled. CMU Fall 2026 exists; its November 16 MVCC lecture is future-scheduled at verification and has no linked notes/slides. The completed Spring notes are used instead. Public reading does not confer registration, credit, staff support, graded access or rights to redistribute textbooks.
+
+### Measured concurrency loop
+
+Ran `python scripts/verify_oncall.py` on the existing dedicated MySQL 8.4.13 Colima profile and its existing volume, at loopback port 13316. This is not a fresh-volume claim. The script actually executes the documented start/run/stop/start/repeat steps, equivalent SQL rewrite, missing-lock negative control, original-suite regression and final scoped stop. It checks the Compose project and actual loopback mapping before SQL.
+
+The business rule is at least one of two fixed doctors remains on call. An independent pure-Python specification enumerates both serial withdrawal orders; only `(0,1)` and `(1,0)` are legal terminal states. An independent autocommit observer reads actual final rows after both participants finish. It checks IDs and flags, not just a count or the runner's asserted verdict. This is a terminal-state oracle for this rule, not a general history-serializability checker.
+
+Observed in every repetition and after stop/start:
+
+| Strategy | READ COMMITTED | REPEATABLE READ | What the evidence establishes |
+| --- | --- | --- | --- |
+| unguarded | 0 remain | 0 remain | Both real reads returned 2 before either distinct-row conditional update; both commit, but the terminal state violates the invariant and serial specification. |
+| late_guard | 1 remains | 0 remain | Real B→A exclusive guard wait precedes A's commit. RR's earlier snapshot persists; acquiring the lock did not make its next plain count current. |
+| guard_first | 1 remains | 1 remains | No consistent read precedes the guard. The waiting follower's first count after the leader commits returns 1. |
+| locking_roster | 1 remains | 1 remains | Real PRIMARY record-lock wait, followed by a current locking read returning one active doctor; only one withdrawal is approved. |
+
+Each saved run contains three repetitions, swapping doctor identities in repetition 2. First/repeat decisions, final rows and oracle verdicts match exactly. Every case has two commits; approval is separately recorded. Successful runs left zero Lab locks and joined/closed all workers/sessions. Lock modes are observed values, not fixed expected modes or performance claims. Saved records are `records/oncall-clean.json` and `records/oncall-repeat.json`; hashes and lifecycle evidence are in `records/oncall-verification.json`.
+
+Changed count SQL to `SELECT COALESCE(SUM(on_call),0) AS n FROM oncall_roster WHERE shift_id=1` and actually reran the complete matrix with `--sql-file`; semantics matched. Removed `FOR UPDATE` from the guard in a separate local copy: the observer rejected the absent real wait within its deadline, the process exited 1, no success JSON appeared, and a subsequent independent check found zero locks. This negative control establishes failure of the required scheduling premise, not a new final-state theorem.
+
+The original deadlock/read-view/error/index suite was actually rerun. All original semantic assertions passed; dataset and result hashes matched the accepted baseline. No old success capability was replaced with a fixture. The nine original and thirteen new regression/adversarial checks pass, including fabricated oracle success, changed final rows, wrong doctor bindings, missing waits/WAITING locks, missing repetitions and incomplete cleanup.
+
+### Reading export and browser acceptance
+
+The independently named export allowlist checks exact files, SHA-256, source/catalog equality, measured-record hashes, recomputed invariant verdicts, privacy, links, anchors and bilingual metadata. New course and concurrency entries are reachable from both language navigations and the existing workbench/runbook. Existing record switching and workbench assets remain available.
+
+Actual Chrome acceptance: English `guard` search returns the two corresponding units; an absent query returns zero; clearing restores all eight course/unit entries. Chinese `索引` search works. Chinese RR late-guard and locking-roster details show real terminal states, approvals, PRIMARY locks and executed parameterized SQL. At 390 CSS pixels both new Chinese pages have `document.scrollWidth=390`, with wide tables/SQL scrolling internally. Public deployment status is recorded separately after Pages and live verification; a source commit alone is not a deployment claim.
+
+### Reproduce and boundaries
+
+```sh
+python scripts/verify_oncall.py
+python -m unittest discover -s tests -v
+python scripts/validate_oncall.py records/oncall-clean.json records/oncall-repeat.json
+python scripts/curriculum.py MVCC
+python scripts/build_site.py
+python scripts/check_site.py
+```
+
+Use the dedicated Docker context when applicable, as in the README. No API key or private dataset is required. Guard-first RR assumes no earlier consistent read and all writers follow the guard protocol. Fixed membership, one shift, no insert/delete/phantom proof, no arbitrary snapshot repair, no throughput or timing comparison. The original run's query timings remain warm-buffer observations with their original limits.
+
+## 1.0 validation (retained history)
 
 Date: 2026-11-13, Asia/Shanghai. Public data is entirely synthetic.
 

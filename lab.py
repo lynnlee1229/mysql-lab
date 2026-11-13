@@ -85,10 +85,12 @@ def start(port):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('command', choices=['doctor', 'start', 'run', 'stop', 'destroy'])
+    p.add_argument('command', choices=['doctor', 'start', 'run', 'oncall', 'stop', 'destroy'])
     p.add_argument('--port', type=int, default=13316, help='Only used on first start')
     p.add_argument('--output', type=Path, help='Sanitized JSON output (default: ignored .local/runs/)')
     p.add_argument('--confirm', help='destroy requires the exact Compose project name')
+    p.add_argument('--repeats', type=int, default=3, help='oncall: 2–5 bounded repetitions')
+    p.add_argument('--sql-file', type=Path, help='oncall: editable SQL JSON (local synthetic experiment only)')
     a = p.parse_args()
     try:
         if a.command == 'doctor':
@@ -100,6 +102,11 @@ def main():
             out = a.output or LOCAL / 'runs' / time.strftime('%Y%m%dT%H%M%S') / 'run.json'
             run(connect, out)
             print('PASS: all measured semantic assertions; sanitized result saved.')
+        elif a.command == 'oncall':
+            from scripts.oncall import run
+            out = a.output or LOCAL / 'runs' / time.strftime('%Y%m%dT%H%M%S') / 'oncall.json'
+            run(connect, out, repeats=a.repeats, sql_file=a.sql_file)
+            print('PASS: measured concurrency counterexamples and locking controls; independent final-state oracle checked.')
         elif a.command == 'stop':
             config()
             compose('stop', '--timeout', '20')

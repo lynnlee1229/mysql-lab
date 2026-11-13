@@ -1,6 +1,7 @@
 """Real MySQL session orchestration. No fixture outputs and no sleep-based ordering."""
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 import hashlib
 import importlib.metadata
 import json
@@ -43,6 +44,8 @@ def sql(c, query, args=None):
 def encode(obj):
     if isinstance(obj, (date, datetime)):
         return obj.isoformat()
+    if isinstance(obj, Decimal):
+        return int(obj) if obj == obj.to_integral_value() else str(obj)
     raise TypeError(type(obj).__name__)
 
 
@@ -73,10 +76,11 @@ class Sessions:
             self.events.append({'step': len(self.events)+1, 'elapsed_ms': round((time.perf_counter_ns()-self.zero)/1e6, 3), 'actor': actor, 'action': action, **data})
 
     def execute(self, c, actor, query, args=None):
-        self.event(actor, 'submit', sql=query)
+        bindings = {'parameters': list(args)} if args is not None else {}
+        self.event(actor, 'submit', sql=query, **bindings)
         try:
             rows = sql(c, query, args)
-            self.event(actor, 'returned', sql=query, rows=rows)
+            self.event(actor, 'returned', sql=query, rows=rows, **bindings)
             return rows
         except pymysql.MySQLError as e:
             self.event(actor, 'mysql_error', sql=query, errno=e.args[0])

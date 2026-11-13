@@ -4,6 +4,8 @@ Real MySQL transactions, lock evidence and query plans. A public MIT companion t
 
 The website reads saved executions. It never connects a browser to MySQL. Download this repository to change SQL, develop the runner and debug real concurrent sessions. It contains only synthetic data, audited records and Lab-specific code; the complete homepage source is private.
 
+Start with the [course route and six runnable learning units](https://lynnlee1229.github.io/mysql-lab/en/learn/), then [the business-invariant exercise](https://lynnlee1229.github.io/mysql-lab/en/oncall/). The searchable [resource catalog](learning/resources.json) records exact course numbers, editions, prerequisites, public-access conditions, lecture locations and verification dates for CMU 15-445/645 and MIT 6.5830/6.5831 Spring 2026. `python scripts/curriculum.py MVCC` searches it offline. University reading access is separate from enrollment, credit, paid textbooks and graded submissions; these SQL exercises are independent of university assignments.
+
 ## Run locally
 
 Requirements: Python 3.11+, a healthy Docker Engine, Compose v2 or standalone `docker-compose`, two CPU cores, 2 GiB available engine memory and 2 GiB free disk. MySQL itself is limited to two CPUs and 1 GiB, with a 128 MiB InnoDB buffer pool. The exact official MySQL 8.4 patch and multi-platform image digest are in `image-lock.json` and `compose.yaml`.
@@ -39,6 +41,44 @@ Keep `DOCKER_CONTEXT` set for every Lab command when using this profile. The def
 
 The runner also executes bad SQL (1064), a real one-second lock timeout (1205), and a connection-refusal probe (2003). All worker sessions close, unfinished transactions roll back and zero Lab locks remain. Barriers are conditions on completed statements or observed locks; polling delays never decide transaction ordering. Hard connection, query, observation and worker timeouts bound failure paths.
 
+## New exercise: both commit, nobody stays on call
+
+Two doctors each withdraw only if another remains. The business invariant is `SUM(on_call) >= 1`. The independent pure-Python specification in `scripts/invariant_oracle.py` enumerates both serial request orders, allowing only `(0,1)` and `(1,0)`. A separate autocommit observer reads actual final rows after both workers finish. This is a final-state oracle for the fixed two-request rule, not a general serializability checker.
+
+```sh
+python lab.py start
+python lab.py oncall --output .local/oncall-first.json
+python lab.py stop
+python lab.py start
+python lab.py oncall --output .local/oncall-repeat.json
+python scripts/validate_oncall.py .local/oncall-first.json .local/oncall-repeat.json
+python lab.py stop
+```
+
+With the dedicated Colima profile, retain `DOCKER_CONTEXT=colima-mysql-lab` for every command, as in the setup above. `oncall` resets only `oncall_guard` and `oncall_roster` in the dedicated synthetic schema. It never changes server-global isolation or detector settings. Each default run executes four strategies × two isolation levels × three repetitions, swapping doctor identities in repetition 2:
+
+| Strategy | RC | RR | Evidence to explain |
+| --- | --- | --- | --- |
+| `unguarded` | both leave | both leave | Both counts return 2 before any write; row-local conditional updates affect different doctors. |
+| `late_guard` | one remains | both leave | A real exclusive guard wait occurs, but RR's earlier consistent-read snapshot persists. |
+| `guard_first` | one remains | one remains | No consistent read precedes the guard. The waiting follower's first count reads 1. |
+| `locking_roster` | one remains | one remains | The waiting current locking read returns one active doctor; inspect actual PRIMARY locks. |
+
+All strategies deliberately produce two commits. Approval, business correctness and commit success are separate fields. An expected counterexample counts as evidence only when the independent final-state oracle actually rejects the observed state. No timing winner is prescribed. Guard-first requires all writers to cooperate and no previous consistent read in the transaction; the row-lock control tests fixed membership, not insert/delete/range protection.
+
+Preserve the baseline, copy `sql/oncall.json` to `.local/oncall-sql.json` and modify that copy:
+
+```sh
+cp sql/oncall.json .local/oncall-sql.json
+# Edit the count query to this equivalent fixed-roster formulation:
+# SELECT COALESCE(SUM(on_call),0) AS n FROM oncall_roster WHERE shift_id=1
+python lab.py start
+python lab.py oncall --sql-file .local/oncall-sql.json --output .local/oncall-edited.json
+python lab.py stop
+```
+
+Explain why the matrix stays the same. Then remove `FOR UPDATE` from the guard query in the local copy. The runner must reject the missing B→A edge within its deadline and write no success report. This negative control tests orchestration assumptions, not a new final-state claim. Restore SQL before retrying. The live [step-by-step exercise](https://lynnlee1229.github.io/mysql-lab/en/oncall/) includes real SQL bindings, timelines, lock snapshots, the oracle and lecture mapping.
+
 ## Stop, repeat and explicit destruction
 
 ```sh
@@ -57,12 +97,13 @@ Do not delete local password files while retaining the volume: initialization pa
 ```sh
 python -m unittest discover -s tests -v
 python scripts/validate.py records/run-clean.json records/run-repeat.json
+python scripts/validate_oncall.py records/oncall-clean.json records/oncall-repeat.json
 python scripts/build_site.py
 python scripts/check_site.py
 python -m http.server 18911 --bind 127.0.0.1 --directory dist
 ```
 
-Open `http://127.0.0.1:18911/mysql-lab/en/` or `/mysql-lab/zh/`. The allowlist exporter consumes only `records/run-clean.json`, `records/run-repeat.json`, `records/verification.json` and four named site assets. It never copies `.local/`, raw logs, credentials or authoring source. The static manifest hashes every exported file. Homepage CI only needs the committed export, never a local absolute directory.
+Open `http://127.0.0.1:18911/mysql-lab/en/` or `/mysql-lab/zh/`; `/learn/` and `/oncall/` are bilingual learning entries. The allowlist exporter consumes seven explicitly named sanitized records, `learning/resources.json` and five named site assets. It never copies `.local/`, raw logs, credentials or authoring source. The static manifest hashes every exported file. Homepage CI only needs the committed export, never a local absolute directory. `python scripts/verify_resources.py` optionally refreshes public official link status/type/hashes; it retains no course document bodies and is not needed for ordinary offline validation.
 
 CI actually starts the pinned MySQL image on a clean volume, executes both runs across stop/start, validates measured reports, tests adversarial baseline regressions and checks the static export. It retains only sanitized JSON artifacts and explicitly removes its own resources. The local release history is in `VALIDATION.md`; the public lifecycle evidence is in `records/verification.json`.
 

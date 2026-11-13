@@ -1,0 +1,7 @@
+{
+  "format": "mysql-lab-oncall-sql/v1",
+  "count": "SELECT COUNT(*) AS n FROM oncall_roster WHERE shift_id=1 AND on_call=1",
+  "guard": "SELECT shift_id FROM oncall_guard WHERE shift_id=1 FOR UPDATE",
+  "locking_roster": "SELECT doctor_id FROM oncall_roster WHERE shift_id=1 AND on_call=1 ORDER BY doctor_id FOR UPDATE",
+  "leave": "UPDATE oncall_roster SET on_call=0 WHERE shift_id=1 AND doctor_id=%s AND on_call=1"
+}

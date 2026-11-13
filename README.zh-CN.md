@@ -1,5 +1,40 @@
 # MySQL Lab
 
+本轮新增[课程路线与六个可运行单元](https://lynnlee1229.github.io/mysql-lab/zh/learn/)和[并发撤岗业务不变量练习](https://lynnlee1229.github.io/mysql-lab/zh/oncall/)。[结构化资源清单](learning/resources.json)记录 CMU 15-445/645、MIT 6.5830/6.5831 的准确名称、2026 春季版本、先修、公开材料、具体讲次和核验日期。离线运行 `python scripts/curriculum.py 索引` 或 `python scripts/curriculum.py MVCC` 即可检索。公开阅读与学校注册、学分、收费教材及评分支持分开说明；练习是独立编写的 SQL 实验，不是大学作业解答。
+
+## 新练习：双方提交，却无人值班
+
+固定两名医生各申请撤岗，业务规则是“至少留一人”：`SUM(on_call) >= 1`。独立 Python 规格模型枚举两种串行请求顺序，合法终值只有 `(0,1)`、`(1,0)`。两方提交后，另一个自动提交观察者读取 MySQL 实际终值；模型不读取作者预制结果。它只检查这个规则的终态，不是通用可串行化验证器。
+
+沿用下方隔离环境；使用专用 profile 时每条命令都保留 `DOCKER_CONTEXT=colima-mysql-lab`：
+
+```sh
+python lab.py start
+python lab.py oncall --output .local/oncall-first.json
+python lab.py stop
+python lab.py start
+python lab.py oncall --output .local/oncall-repeat.json
+python scripts/validate_oncall.py .local/oncall-first.json .local/oncall-repeat.json
+python lab.py stop
+```
+
+`oncall` 只重置专用合成 schema 内的 `oncall_guard`、`oncall_roster`，不修改全局隔离级别或死锁检测设置。默认每份结果运行四种策略 × 两个隔离级别 × 三轮；第二轮交换医生 ID。双方都成功提交，是否批准撤岗与是否满足业务规则分别记录。
+
+| 策略 | RC | RR | 应检查的证据 |
+| --- | --- | --- | --- |
+| `unguarded` | 两人均撤岗 | 两人均撤岗 | 写入前两次计数均已返回 2；单行 `AND on_call=1` 条件不能保护跨行规则。 |
+| `late_guard` | 留一人 | 两人均撤岗 | 真实独占守卫锁等待存在，但 RR 先前已建立的读视图没有被刷新。 |
+| `guard_first` | 留一人 | 留一人 | 取得守卫锁前没有一致性读；等待方首次计数读到 1。 |
+| `locking_roster` | 留一人 | 留一人 | 当前锁定读等待后只返回一名值班医生，并保存实际 PRIMARY 锁。 |
+
+先预测，再运行，再解释锁与终值。保存基线后复制 `sql/oncall.json` 为 `.local/oncall-sql.json`，将 `count` 改为 `SELECT COALESCE(SUM(on_call),0) AS n FROM oncall_roster WHERE shift_id=1`，先 `python lab.py start`，再用 `python lab.py oncall --sql-file .local/oncall-sql.json --output .local/oncall-edited.json` 复跑，解释为什么固定名单下语义相同；完成后 `python lab.py stop`。
+
+负对照：从本地副本的 `guard` 查询删除 `FOR UPDATE`。运行器应在观察期限内拒绝缺失的 B→A 等待边，且不产生成功 JSON；这验证的是调度前提失效，不是新的终值结论。恢复 SQL 后再试。
+
+所有写入者必须遵守守卫协议，guard_first 的 RR 事务也不能更早建立一致性读快照。当前实验只有固定成员、一个班次，不推广到成员插入、删除、范围谓词或吞吐性能；不需要 API key、模型或数据库插件。完整[分步练习与真实证据](https://lynnlee1229.github.io/mysql-lab/zh/oncall/)含参数绑定、时间线、锁表、独立模型判断及具体课程映射。
+
+新增离线验证：`python scripts/validate_oncall.py records/oncall-clean.json records/oncall-repeat.json`。`python scripts/verify_resources.py` 可选地重新核验公开官方资料，只保存状态、类型与哈希，不保存课程正文；普通实验及验证无需此联网步骤。
+
 真实 MySQL 事务、锁证据与查询计划。[双语网页](https://lynnlee1229.github.io/mysql-lab/zh/)的 MIT 配套实验仓库。网页用于阅读保存记录，浏览器不连接数据库。下载源码后可修改 SQL、开发编排器及调试真实并发；主页整体源码保持私有。
 
 ## 本地运行
