@@ -43,7 +43,7 @@ These are local warm-buffer observations. Fixed variant ordering, no cold-cache 
 
 The exact staged Git index is audited by scripts/audit_public.py before its public push. No credentials, .local configuration, raw logs, host identifiers, absolute local paths, real contacts or business data are included. Only the independent MIT companion is public; the complete homepage source stays private.
 
-GitHub Actions runs a real clean-volume MySQL experiment and stop/start repeat, validates their reports, runs the nine baseline tests, audits tracked source and builds/checks the static site. It uploads only sanitized JSON and explicitly destroys its own CI resources. Current runs: https://github.com/lynnlee1229/mysql-lab/actions
+GitHub Actions runs a real clean-volume MySQL experiment and stop/start repeat, validates their reports, runs the nine baseline tests, audits tracked source and builds/checks the static site. It uploads only sanitized JSON and explicitly destroys its own CI resources. Independent real Linux x86_64 CI run passed on companion commit b5dd61c: https://github.com/lynnlee1229/mysql-lab/actions/runs/43424390010 . Its downloaded clean/repeat artifacts independently passed validation and matched the local dataset hash. This validates semantics across these two tested machines, not timing equivalence. Current runs: https://github.com/lynnlee1229/mysql-lab/actions
 
 The static homepage export is generated from these frozen, audited records. Publication commits, terminal Pages status and public URL/resource/browser acceptance are persisted separately in the workspace mysql-lab release record; a source push alone is not deployment evidence.
 
