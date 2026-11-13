@@ -105,6 +105,8 @@ python -m http.server 18911 --bind 127.0.0.1 --directory dist
 
 Open `http://127.0.0.1:18911/mysql-lab/en/` or `/mysql-lab/zh/`; `/learn/` and `/oncall/` are bilingual learning entries. The allowlist exporter consumes seven explicitly named sanitized records, `learning/resources.json` and five named site assets. It never copies `.local/`, raw logs, credentials or authoring source. The static manifest hashes every exported file. Homepage CI only needs the committed export, never a local absolute directory. `python scripts/verify_resources.py` optionally refreshes public official link status/type/hashes; it retains no course document bodies and is not needed for ordinary offline validation.
 
+After an authorized Pages deployment, `python scripts/check_live.py` verifies HTTP 200 and byte-for-byte SHA-256 for every exported public file over HTTPS. It writes its local acceptance report to ignored `.local/release/live.json` and never changes the deployed site.
+
 CI actually starts the pinned MySQL image on a clean volume, executes both runs across stop/start, validates measured reports, tests adversarial baseline regressions and checks the static export. It retains only sanitized JSON artifacts and explicitly removes its own resources. The local release history is in `VALIDATION.md`; the public lifecycle evidence is in `records/verification.json`.
 
 ## Reading results correctly

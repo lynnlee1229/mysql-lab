@@ -40,5 +40,27 @@
     }
   },
   "limits": "Fixed roster; all writers cooperate with a guard; guard-first RR has no earlier consistent read. Terminal-state oracle is not a general history checker. No performance comparison.",
-  "container_stopped_at_end": true
+  "container_stopped_at_end": true,
+  "independent_ci": {
+    "result": "PASS",
+    "url": "https://github.com/lynnlee1229/mysql-lab/actions/runs/43480829459",
+    "tested_commit": "c039b9c4013dafe762973c52b7ab65e2631d5382",
+    "environment": "Docker / Linux x86_64",
+    "version": "8.4.13",
+    "artifact_revalidation": [
+      {
+        "run": "clean",
+        "oncall_sha256": "20f75ff7f46753abbefb1f87b0c95bb3f7162faf69b4b38f663ecd7b32910470",
+        "oncall_matrix_matches_local": true,
+        "original_semantics_and_hashes_match": true
+      },
+      {
+        "run": "repeat",
+        "oncall_sha256": "ba4760f629e524245aac8cd56ffc116888d2e15e7d3d7912a60e502ec9f77771",
+        "oncall_matrix_matches_local": true,
+        "original_semantics_and_hashes_match": true
+      }
+    ],
+    "scope": "Real clean-volume Linux execution and stop/start repeat; independently downloaded and revalidated. No timing equality claim."
+  }
 }

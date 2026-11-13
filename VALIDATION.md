@@ -31,6 +31,8 @@ Changed count SQL to `SELECT COALESCE(SUM(on_call),0) AS n FROM oncall_roster WH
 
 The original deadlock/read-view/error/index suite was actually rerun. All original semantic assertions passed; dataset and result hashes matched the accepted baseline. No old success capability was replaced with a fixture. The nine original and thirteen new regression/adversarial checks pass, including fabricated oracle success, changed final rows, wrong doctor bindings, missing waits/WAITING locks, missing repetitions and incomplete cleanup.
 
+Independent [Linux x86_64 CI on commit c039b9c](https://github.com/lynnlee1229/mysql-lab/actions/runs/43480829459) also passed real clean-volume first execution and stop/start repeat on MySQL 8.4.13. Its sanitized artifacts were downloaded and independently revalidated: both on-call matrices equal the ARM64 local semantic results, and original-suite dataset/result hashes match. The artifact hashes are in `records/oncall-verification.json`. This establishes the tested semantics on these two environments, not timing equivalence.
+
 ### Reading export and browser acceptance
 
 The independently named export allowlist checks exact files, SHA-256, source/catalog equality, measured-record hashes, recomputed invariant verdicts, privacy, links, anchors and bilingual metadata. New course and concurrency entries are reachable from both language navigations and the existing workbench/runbook. Existing record switching and workbench assets remain available.

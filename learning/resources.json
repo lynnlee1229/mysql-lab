@@ -11,7 +11,7 @@
       "name": "Intro to Database Systems",
       "term": "Spring 2026",
       "prerequisites": "Official syllabus: CMU 15-213/513; C++17 programming. Lab adaptation: SQL, Python, transactions and basic indexes; no BusTub implementation required.",
-      "public_access": "Schedule, linked lecture notes and slides were readable without login. Textbook chapter references are reading pointers, not a claim that the complete textbook is freely licensed. No course content is redistributed here.",
+      "public_access": "Schedule, selected linked lecture notes were readable without login. Textbook chapter references are reading pointers, not a claim that the complete textbook is freely licensed. No course content is redistributed here.",
       "enrollment": "Public reading does not provide CMU registration, credit, staff support or Gradescope access. Institutional enrollment and its costs are separate; no fee or free-credit claim is made.",
       "url": "https://15445.courses.cs.cmu.edu/spring2026/",
       "syllabus_url": "https://15445.courses.cs.cmu.edu/spring2026/syllabus.html",
